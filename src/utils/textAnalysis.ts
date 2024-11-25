@@ -29,12 +29,10 @@ const detectLanguage = (text: string): "it" | "en" => {
   return italianCount > words.length * 0.1 ? "it" : "en";
 };
 
-// Funzione per pulire la parola da punteggiatura
 const cleanWord = (word: string): string => {
   return word.replace(/[.,!?;:"']/g, '').toLowerCase().trim();
 };
 
-// Funzione migliorata per ottenere tutte le forme di un aggettivo
 const getAdjectiveForms = (adjective: string): Set<string> => {
   const forms = new Set<string>();
   forms.add(adjective); // forma base
@@ -74,6 +72,21 @@ const getAllAdjectiveForms = (): Set<string> => {
 
 const adjectiveFormsSet = getAllAdjectiveForms();
 
+const getAdjectiveSentiment = (adjective: string): number => {
+  // Pulisce l'aggettivo da punteggiatura
+  const cleanedAdj = cleanWord(adjective);
+  
+  // Controlla se l'aggettivo è presente nelle liste di sentiment
+  if (positiveWordsIT.has(cleanedAdj)) {
+    return 1;
+  }
+  if (negativeWordsIT.has(cleanedAdj)) {
+    return -1;
+  }
+  
+  return 0;
+};
+
 export const analyzeText = (text: string) => {
   const lang = detectLanguage(text);
   const doc = nlp(text);
@@ -87,19 +100,34 @@ export const analyzeText = (text: string) => {
     let totalWords = 0;
     
     words.forEach(word => {
-      if (positiveWordsIT.has(word)) {
+      const cleanedWord = cleanWord(word);
+      
+      // Analisi delle parole di sentiment
+      if (positiveWordsIT.has(cleanedWord)) {
         score += 1;
         totalWords += 1;
       }
-      if (negativeWordsIT.has(word)) {
+      if (negativeWordsIT.has(cleanedWord)) {
         score -= 1;
         totalWords += 1;
       }
+      
+      // Analisi degli aggettivi
+      if (adjectiveFormsSet.has(cleanedWord)) {
+        const adjectiveSentiment = getAdjectiveSentiment(cleanedWord);
+        if (adjectiveSentiment !== 0) {
+          score += adjectiveSentiment;
+          totalWords += 1;
+        }
+      }
     });
+    
+    // Normalizza il punteggio in base al numero di parole analizzate
+    const normalizedScore = totalWords > 0 ? score / totalWords : 0;
     
     return {
       text: sentence,
-      sentiment: score > 0 ? "positive" : score < 0 ? "negative" : "neutral"
+      sentiment: normalizedScore > 0.1 ? "positive" : normalizedScore < -0.1 ? "negative" : "neutral"
     };
   });
   
@@ -116,7 +144,6 @@ export const analyzeText = (text: string) => {
   wordList.forEach(word => {
     const cleanedWord = cleanWord(word);
     if (adjectiveFormsSet.has(cleanedWord)) {
-      // Troviamo la forma base dell'aggettivo per il conteggio
       const baseForm = Array.from(italianAdjectives).find(adj => 
         getAdjectiveForms(adj).has(cleanedWord)
       ) || cleanedWord;
