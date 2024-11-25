@@ -29,6 +29,39 @@ const detectLanguage = (text: string): "it" | "en" => {
   return italianCount > words.length * 0.1 ? "it" : "en";
 };
 
+// Nuova funzione per ottenere tutte le forme di un aggettivo
+const getAdjectiveForms = (adjective: string): Set<string> => {
+  const forms = new Set<string>();
+  forms.add(adjective); // forma base
+
+  // Regole per il plurale maschile
+  if (adjective.endsWith('o')) {
+    forms.add(adjective.slice(0, -1) + 'i'); // es: bello -> belli
+  } else if (adjective.endsWith('e')) {
+    forms.add(adjective.slice(0, -1) + 'i'); // es: grande -> grandi
+  }
+
+  // Regole per il femminile e plurale femminile
+  if (adjective.endsWith('o')) {
+    forms.add(adjective.slice(0, -1) + 'a'); // singolare femminile
+    forms.add(adjective.slice(0, -1) + 'e'); // plurale femminile
+  }
+
+  return forms;
+};
+
+// Creiamo un set con tutte le forme possibili degli aggettivi
+const getAllAdjectiveForms = (): Set<string> => {
+  const allForms = new Set<string>();
+  italianAdjectives.forEach(adj => {
+    const forms = getAdjectiveForms(adj);
+    forms.forEach(form => allForms.add(form));
+  });
+  return allForms;
+};
+
+const adjectiveFormsSet = getAllAdjectiveForms();
+
 export const analyzeText = (text: string) => {
   const lang = detectLanguage(text);
   const doc = nlp(text);
@@ -69,8 +102,13 @@ export const analyzeText = (text: string) => {
   const adjectivesCount: { [key: string]: number } = {};
   
   wordList.forEach(word => {
-    if (italianAdjectives.has(word)) {
-      adjectivesCount[word] = (adjectivesCount[word] || 0) + 1;
+    if (adjectiveFormsSet.has(word)) {
+      // Troviamo la forma base dell'aggettivo per il conteggio
+      const baseForm = Array.from(italianAdjectives).find(adj => 
+        getAdjectiveForms(adj).has(word)
+      ) || word;
+      
+      adjectivesCount[baseForm] = (adjectivesCount[baseForm] || 0) + 1;
     }
   });
 
