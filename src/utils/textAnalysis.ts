@@ -29,7 +29,12 @@ const detectLanguage = (text: string): "it" | "en" => {
   return italianCount > words.length * 0.1 ? "it" : "en";
 };
 
-// Nuova funzione per ottenere tutte le forme di un aggettivo
+// Funzione per pulire la parola da punteggiatura
+const cleanWord = (word: string): string => {
+  return word.replace(/[.,!?;:"']/g, '').toLowerCase().trim();
+};
+
+// Funzione migliorata per ottenere tutte le forme di un aggettivo
 const getAdjectiveForms = (adjective: string): Set<string> => {
   const forms = new Set<string>();
   forms.add(adjective); // forma base
@@ -45,12 +50,19 @@ const getAdjectiveForms = (adjective: string): Set<string> => {
   if (adjective.endsWith('o')) {
     forms.add(adjective.slice(0, -1) + 'a'); // singolare femminile
     forms.add(adjective.slice(0, -1) + 'e'); // plurale femminile
+  } else if (adjective.endsWith('e')) {
+    // Per aggettivi che terminano in 'e', il femminile è uguale al maschile
+    forms.add(adjective); // singolare femminile
+    forms.add(adjective.slice(0, -1) + 'i'); // plurale sia maschile che femminile
+  } else if (adjective.endsWith('to')) {
+    forms.add(adjective.slice(0, -1) + 'ta'); // singolare femminile
+    forms.add(adjective.slice(0, -2) + 'ti'); // plurale maschile
+    forms.add(adjective.slice(0, -2) + 'te'); // plurale femminile
   }
 
   return forms;
 };
 
-// Creiamo un set con tutte le forme possibili degli aggettivi
 const getAllAdjectiveForms = (): Set<string> => {
   const allForms = new Set<string>();
   italianAdjectives.forEach(adj => {
@@ -102,11 +114,12 @@ export const analyzeText = (text: string) => {
   const adjectivesCount: { [key: string]: number } = {};
   
   wordList.forEach(word => {
-    if (adjectiveFormsSet.has(word)) {
+    const cleanedWord = cleanWord(word);
+    if (adjectiveFormsSet.has(cleanedWord)) {
       // Troviamo la forma base dell'aggettivo per il conteggio
       const baseForm = Array.from(italianAdjectives).find(adj => 
-        getAdjectiveForms(adj).has(word)
-      ) || word;
+        getAdjectiveForms(adj).has(cleanedWord)
+      ) || cleanedWord;
       
       adjectivesCount[baseForm] = (adjectivesCount[baseForm] || 0) + 1;
     }

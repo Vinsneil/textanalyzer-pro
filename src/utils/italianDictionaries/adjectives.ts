@@ -1,5 +1,4 @@
 export const italianAdjectives = new Set([
-  // Aspetto fisico
   "alto", "basso", "magro", "grasso", "robusto", "snello", "atletico", "muscoloso",
   "longilineo", "corpulento", "minuto", "massiccio", "slanciato", "tarchiato", "gracile", "possente",
   "aggraziato", "sgraziato", "proporzionato", "sproporzionato", "simmetrico", "asimmetrico",
@@ -139,4 +138,7 @@ export const italianAdjectives = new Set([
   // Sicurezza
   "sicuro", "pericoloso", "affidabile", "inaffidabile", "fidato", "infido", "protetto", "esposto",
   "garantito", "rischioso", "tutelato", "minacciato", "difeso", "indifeso", "salvaguardato", "vulnerabile"
+  
+  // Nuovi aggettivi
+  "indigesto", "sciagurato", "limitato",
 ]);
