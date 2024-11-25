@@ -11,6 +11,7 @@ interface KeywordsAnalysisProps {
   bigrams: Array<[string, number]>;
   trigrams: Array<[string, number]>;
   adjectives: Array<[string, number]>;
+  properNouns: Array<[string, number]>;
 }
 
 const KeywordsAnalysis = ({
@@ -18,6 +19,7 @@ const KeywordsAnalysis = ({
   bigrams,
   trigrams,
   adjectives,
+  properNouns,
 }: KeywordsAnalysisProps) => {
   return (
     <Card className="p-6">
@@ -30,6 +32,7 @@ const KeywordsAnalysis = ({
           <TabsTrigger value="bigrams">Bigrammi</TabsTrigger>
           <TabsTrigger value="trigrams">Trigrammi</TabsTrigger>
           <TabsTrigger value="adjectives">Aggettivi</TabsTrigger>
+          <TabsTrigger value="properNouns">Nomi propri</TabsTrigger>
         </TabsList>
         <TabsContent value="keywords">
           <WordList items={keywords} />
@@ -42,6 +45,9 @@ const KeywordsAnalysis = ({
         </TabsContent>
         <TabsContent value="adjectives">
           <WordList items={adjectives} />
+        </TabsContent>
+        <TabsContent value="properNouns">
+          <WordList items={properNouns} />
         </TabsContent>
       </Tabs>
     </Card>

@@ -29,6 +29,28 @@ const detectLanguage = (text: string): "it" | "en" => {
   return italianCount > words.length * 0.1 ? "it" : "en";
 };
 
+const findProperNouns = (text: string): Array<[string, number]> => {
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+  const properNouns: { [key: string]: number } = {};
+  
+  sentences.forEach(sentence => {
+    const words = sentence.trim().split(/\s+/);
+    words.forEach((word, index) => {
+      // Skip first word of sentence and words after punctuation
+      if (index === 0 || words[index - 1].endsWith('.')) return;
+      
+      // Check if word starts with capital letter
+      if (/^[A-Z][a-zàèéìòù]*$/.test(word)) {
+        properNouns[word] = (properNouns[word] || 0) + 1;
+      }
+    });
+  });
+
+  return Object.entries(properNouns)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 40);
+};
+
 const cleanWord = (word: string): string => {
   return word.replace(/[.,!?;:"']/g, '').toLowerCase().trim();
 };
@@ -162,6 +184,7 @@ export const analyzeText = (text: string) => {
     adjectives: Object.entries(adjectivesFreq)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 40),
+    properNouns: findProperNouns(text),
     sentiment: {
       overall: overallSentiment,
       sentences: sentimentResults,

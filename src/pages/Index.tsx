@@ -63,6 +63,7 @@ const Index = () => {
                 bigrams={analysis.bigrams}
                 trigrams={analysis.trigrams}
                 adjectives={analysis.adjectives}
+                properNouns={analysis.properNouns}
               />
             </div>
           )}
