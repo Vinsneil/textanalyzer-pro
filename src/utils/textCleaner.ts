@@ -1,5 +1,6 @@
 export const cleanWord = (word: string): string => {
-  return word.replace(/[.,!?;:"']/g, '').toLowerCase().trim();
+  // Remove punctuation from both start and end of the word
+  return word.replace(/^[.,!?;:"']+|[.,!?;:"']+$/g, '').toLowerCase().trim();
 };
 
 export const removeStopwords = (words: string[], lang: string) => {

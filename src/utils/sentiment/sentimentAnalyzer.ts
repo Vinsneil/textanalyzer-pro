@@ -3,6 +3,7 @@ import { positiveWordsIT, negativeWordsIT } from '../italianDictionaries/sentime
 import { cleanWord } from '../textCleaner';
 
 export const getAdjectiveSentiment = (adjective: string): number => {
+  // Clean the adjective before checking sentiment
   const cleanedAdj = cleanWord(adjective);
   
   if (positiveWordsIT.has(cleanedAdj)) {
@@ -21,6 +22,7 @@ export const analyzeSentence = (sentence: string) => {
   let totalWords = 0;
   
   words.forEach(word => {
+    // Clean each word before sentiment analysis
     const cleanedWord = cleanWord(word);
     
     if (positiveWordsIT.has(cleanedWord)) {
