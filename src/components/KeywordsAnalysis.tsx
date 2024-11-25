@@ -35,19 +35,19 @@ const KeywordsAnalysis = ({
           <TabsTrigger value="properNouns">Nomi propri</TabsTrigger>
         </TabsList>
         <TabsContent value="keywords">
-          <WordList items={keywords} />
+          <WordList items={keywords || []} />
         </TabsContent>
         <TabsContent value="bigrams">
-          <WordList items={bigrams} />
+          <WordList items={bigrams || []} />
         </TabsContent>
         <TabsContent value="trigrams">
-          <WordList items={trigrams} />
+          <WordList items={trigrams || []} />
         </TabsContent>
         <TabsContent value="adjectives">
-          <WordList items={adjectives} />
+          <WordList items={adjectives || []} />
         </TabsContent>
         <TabsContent value="properNouns">
-          <WordList items={properNouns} />
+          <WordList items={properNouns || []} />
         </TabsContent>
       </Tabs>
     </Card>
