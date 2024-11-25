@@ -73,15 +73,13 @@ const getAllAdjectiveForms = (): Set<string> => {
 const adjectiveFormsSet = getAllAdjectiveForms();
 
 const getAdjectiveSentiment = (adjective: string): number => {
-  // Pulisce l'aggettivo da punteggiatura
   const cleanedAdj = cleanWord(adjective);
   
-  // Controlla se l'aggettivo è presente nelle liste di sentiment
   if (positiveWordsIT.has(cleanedAdj)) {
     return 1;
   }
   if (negativeWordsIT.has(cleanedAdj)) {
-    return -1;
+    return -1.5; // Aumentato il peso negativo
   }
   
   return 0;
@@ -108,7 +106,7 @@ export const analyzeText = (text: string) => {
         totalWords += 1;
       }
       if (negativeWordsIT.has(cleanedWord)) {
-        score -= 1;
+        score -= 1.5; // Aumentato il peso negativo
         totalWords += 1;
       }
       
@@ -127,7 +125,7 @@ export const analyzeText = (text: string) => {
     
     return {
       text: sentence,
-      sentiment: normalizedScore > 0.1 ? "positive" : normalizedScore < -0.1 ? "negative" : "neutral"
+      sentiment: normalizedScore > 0.15 ? "positive" : normalizedScore < -0.08 ? "negative" : "neutral" // Modificate le soglie
     };
   });
   
