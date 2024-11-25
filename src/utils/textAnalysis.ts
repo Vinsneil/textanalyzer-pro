@@ -1,12 +1,14 @@
 import { italianAdjectives } from './italianDictionaries/adjectives';
 import { positiveWordsIT, negativeWordsIT } from './italianDictionaries/sentimentWords';
+import { cleanWord, removeStopwords } from './textCleaner';
+import { getAdjectiveSentiment, analyzeSentence } from './sentiment/sentimentAnalyzer';
 import nlp from 'compromise';
 
-const removeStopwords = (words: string[], lang: string) => {
-  const stopwords = lang === "it" 
-    ? ["il", "lo", "la", "i", "gli", "le", "un", "uno", "una", "di", "a", "da", "in", "con", "su", "per", "tra", "fra"]
-    : ["the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with", "by"];
-  return words.filter(word => !stopwords.includes(word.toLowerCase()));
+const detectLanguage = (text: string): "it" | "en" => {
+  const italianWords = ["il", "lo", "la", "i", "gli", "le", "di", "da", "in", "con"];
+  const words = text.toLowerCase().split(" ");
+  const italianCount = words.filter(word => italianWords.includes(word)).length;
+  return italianCount > words.length * 0.1 ? "it" : "en";
 };
 
 const getNGrams = (words: string[], n: number): Array<[string, number]> => {
@@ -22,13 +24,6 @@ const getNGrams = (words: string[], n: number): Array<[string, number]> => {
     .slice(0, 40);
 };
 
-const detectLanguage = (text: string): "it" | "en" => {
-  const italianWords = ["il", "lo", "la", "i", "gli", "le", "di", "da", "in", "con"];
-  const words = text.toLowerCase().split(" ");
-  const italianCount = words.filter(word => italianWords.includes(word)).length;
-  return italianCount > words.length * 0.1 ? "it" : "en";
-};
-
 const findProperNouns = (text: string): Array<[string, number]> => {
   const sentences = text.split(/[.!?]+/).filter(s => s.trim());
   const properNouns: { [key: string]: number } = {};
@@ -36,10 +31,8 @@ const findProperNouns = (text: string): Array<[string, number]> => {
   sentences.forEach(sentence => {
     const words = sentence.trim().split(/\s+/);
     words.forEach((word, index) => {
-      // Skip first word of sentence and words after punctuation
       if (index === 0 || words[index - 1].endsWith('.')) return;
       
-      // Check if word starts with capital letter
       if (/^[A-Z][a-zàèéìòù]*$/.test(word)) {
         properNouns[word] = (properNouns[word] || 0) + 1;
       }
@@ -51,33 +44,21 @@ const findProperNouns = (text: string): Array<[string, number]> => {
     .slice(0, 40);
 };
 
-const cleanWord = (word: string): string => {
-  return word.replace(/[.,!?;:"']/g, '').toLowerCase().trim();
-};
-
 const getAdjectiveForms = (adjective: string): Set<string> => {
   const forms = new Set<string>();
-  forms.add(adjective); // forma base
+  forms.add(adjective);
 
-  // Regole per il plurale maschile
   if (adjective.endsWith('o')) {
-    forms.add(adjective.slice(0, -1) + 'i'); // es: bello -> belli
+    forms.add(adjective.slice(0, -1) + 'i');
+    forms.add(adjective.slice(0, -1) + 'a');
+    forms.add(adjective.slice(0, -1) + 'e');
   } else if (adjective.endsWith('e')) {
-    forms.add(adjective.slice(0, -1) + 'i'); // es: grande -> grandi
-  }
-
-  // Regole per il femminile e plurale femminile
-  if (adjective.endsWith('o')) {
-    forms.add(adjective.slice(0, -1) + 'a'); // singolare femminile
-    forms.add(adjective.slice(0, -1) + 'e'); // plurale femminile
-  } else if (adjective.endsWith('e')) {
-    // Per aggettivi che terminano in 'e', il femminile è uguale al maschile
-    forms.add(adjective); // singolare femminile
-    forms.add(adjective.slice(0, -1) + 'i'); // plurale sia maschile che femminile
+    forms.add(adjective);
+    forms.add(adjective.slice(0, -1) + 'i');
   } else if (adjective.endsWith('to')) {
-    forms.add(adjective.slice(0, -1) + 'ta'); // singolare femminile
-    forms.add(adjective.slice(0, -2) + 'ti'); // plurale maschile
-    forms.add(adjective.slice(0, -2) + 'te'); // plurale femminile
+    forms.add(adjective.slice(0, -1) + 'ta');
+    forms.add(adjective.slice(0, -2) + 'ti');
+    forms.add(adjective.slice(0, -2) + 'te');
   }
 
   return forms;
@@ -94,19 +75,6 @@ const getAllAdjectiveForms = (): Set<string> => {
 
 const adjectiveFormsSet = getAllAdjectiveForms();
 
-const getAdjectiveSentiment = (adjective: string): number => {
-  const cleanedAdj = cleanWord(adjective);
-  
-  if (positiveWordsIT.has(cleanedAdj)) {
-    return 1;
-  }
-  if (negativeWordsIT.has(cleanedAdj)) {
-    return -1.5; // Aumentato il peso negativo
-  }
-  
-  return 0;
-};
-
 export const analyzeText = (text: string) => {
   const lang = detectLanguage(text);
   const doc = nlp(text);
@@ -114,7 +82,6 @@ export const analyzeText = (text: string) => {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const cleanWords = removeStopwords(words, lang);
   
-  // Count adjectives in the text and categorize them
   const adjectivesPositive: { [key: string]: number } = {};
   const adjectivesNegative: { [key: string]: number } = {};
   const adjectivesNeutral: { [key: string]: number } = {};
@@ -126,9 +93,10 @@ export const analyzeText = (text: string) => {
         getAdjectiveForms(adj).has(cleanedWord)
       ) || cleanedWord;
       
-      if (positiveWordsIT.has(cleanedWord)) {
+      const sentiment = getAdjectiveSentiment(cleanedWord);
+      if (sentiment > 0) {
         adjectivesPositive[baseForm] = (adjectivesPositive[baseForm] || 0) + 1;
-      } else if (negativeWordsIT.has(cleanedWord)) {
+      } else if (sentiment < 0) {
         adjectivesNegative[baseForm] = (adjectivesNegative[baseForm] || 0) + 1;
       } else {
         adjectivesNeutral[baseForm] = (adjectivesNeutral[baseForm] || 0) + 1;
@@ -136,39 +104,10 @@ export const analyzeText = (text: string) => {
     }
   });
 
-  const sentimentResults = sentences.map(sentence => {
-    const words = sentence.toLowerCase().split(/\s+/);
-    let score = 0;
-    let totalWords = 0;
-    
-    words.forEach(word => {
-      const cleanedWord = cleanWord(word);
-      
-      if (positiveWordsIT.has(cleanedWord)) {
-        score += 1;
-        totalWords += 1;
-      }
-      if (negativeWordsIT.has(cleanedWord)) {
-        score -= 1.5; // Aumentato il peso negativo
-        totalWords += 1;
-      }
-      
-      if (adjectiveFormsSet.has(cleanedWord)) {
-        const adjectiveSentiment = getAdjectiveSentiment(cleanedWord);
-        if (adjectiveSentiment !== 0) {
-          score += adjectiveSentiment;
-          totalWords += 1;
-        }
-      }
-    });
-    
-    const normalizedScore = totalWords > 0 ? score / totalWords : 0;
-    
-    return {
-      text: sentence,
-      sentiment: normalizedScore > 0.15 ? "positive" : normalizedScore < -0.08 ? "negative" : "neutral" // Modificate le soglie
-    };
-  });
+  const sentimentResults = sentences.map(sentence => ({
+    text: sentence,
+    ...analyzeSentence(sentence)
+  }));
   
   const totalSentences = sentimentResults.length || 1;
   const overallSentiment = {
