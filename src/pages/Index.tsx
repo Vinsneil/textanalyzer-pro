@@ -31,20 +31,29 @@ const Index = () => {
         </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="p-6">
-            <h2 className="text-xl font-heading font-semibold mb-4">
-              Inserisci il testo da analizzare
-            </h2>
-            <Textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Incolla qui il tuo testo..."
-              className="min-h-[300px] mb-4"
-            />
-            <Button onClick={handleAnalyze} className="w-full">
-              Analizza
-            </Button>
-          </Card>
+          <div className="space-y-8">
+            <Card className="p-6">
+              <h2 className="text-xl font-heading font-semibold mb-4">
+                Inserisci il testo da analizzare
+              </h2>
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Incolla qui il tuo testo..."
+                className="min-h-[300px] mb-4"
+              />
+              <Button onClick={handleAnalyze} className="w-full">
+                Analizza
+              </Button>
+            </Card>
+            
+            {analysis && (
+              <SentimentAnalysis
+                overall={analysis.sentiment.overall}
+                sentences={analysis.sentiment.sentences}
+              />
+            )}
+          </div>
 
           {analysis && (
             <div className="space-y-8">
@@ -54,10 +63,6 @@ const Index = () => {
                 bigrams={analysis.bigrams}
                 trigrams={analysis.trigrams}
                 adjectives={analysis.adjectives}
-              />
-              <SentimentAnalysis
-                overall={analysis.sentiment.overall}
-                sentences={analysis.sentiment.sentences}
               />
             </div>
           )}
