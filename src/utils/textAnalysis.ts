@@ -34,15 +34,17 @@ export const analyzeText = (text: string) => {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const cleanWords = removeStopwords(words, lang);
   
-  // Analyze sentiment using compromise's basic sentiment analysis
+  // Simple sentiment analysis based on positive/negative word lists
+  const positiveWords = new Set(['good', 'great', 'excellent', 'happy', 'wonderful', 'fantastic', 'amazing', 'love', 'best', 'beautiful', 'bene', 'ottimo', 'eccellente', 'felice', 'meraviglioso', 'fantastico', 'incredibile', 'amore', 'migliore', 'bello']);
+  const negativeWords = new Set(['bad', 'terrible', 'horrible', 'awful', 'worst', 'hate', 'poor', 'negative', 'male', 'terribile', 'orribile', 'pessimo', 'odio', 'scarso', 'negativo']);
+
   const sentimentResults = sentences.map(sentence => {
-    const sentenceDoc = nlp(sentence);
-    const terms = sentenceDoc.terms().json();
+    const words = sentence.toLowerCase().split(/\s+/);
     let score = 0;
     
-    terms.forEach((term: any) => {
-      if (term.tags.includes('Positive')) score += 1;
-      if (term.tags.includes('Negative')) score -= 1;
+    words.forEach(word => {
+      if (positiveWords.has(word)) score += 1;
+      if (negativeWords.has(word)) score -= 1;
     });
     
     return {
