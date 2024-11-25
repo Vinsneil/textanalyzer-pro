@@ -137,8 +137,8 @@ export const italianAdjectives = new Set([
   
   // Sicurezza
   "sicuro", "pericoloso", "affidabile", "inaffidabile", "fidato", "infido", "protetto", "esposto",
-  "garantito", "rischioso", "tutelato", "minacciato", "difeso", "indifeso", "salvaguardato", "vulnerabile"
+  "garantito", "rischioso", "tutelato", "minacciato", "difeso", "indifeso", "salvaguardato", "vulnerabile",
   
   // Nuovi aggettivi
-  "indigesto", "sciagurato", "limitato",
+  "indigesto", "sciagurato", "limitato"
 ]);
