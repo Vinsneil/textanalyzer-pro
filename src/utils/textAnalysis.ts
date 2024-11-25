@@ -114,22 +114,28 @@ export const analyzeText = (text: string) => {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const cleanWords = removeStopwords(words, lang);
   
-  // Count adjectives in the text
-  let adjectivesCount = 0;
-  const adjectivesFreq: { [key: string]: number } = {};
+  // Count adjectives in the text and categorize them
+  const adjectivesPositive: { [key: string]: number } = {};
+  const adjectivesNegative: { [key: string]: number } = {};
+  const adjectivesNeutral: { [key: string]: number } = {};
   
   words.forEach(word => {
     const cleanedWord = cleanWord(word);
     if (adjectiveFormsSet.has(cleanedWord)) {
-      adjectivesCount++;
       const baseForm = Array.from(italianAdjectives).find(adj => 
         getAdjectiveForms(adj).has(cleanedWord)
       ) || cleanedWord;
       
-      adjectivesFreq[baseForm] = (adjectivesFreq[baseForm] || 0) + 1;
+      if (positiveWordsIT.has(cleanedWord)) {
+        adjectivesPositive[baseForm] = (adjectivesPositive[baseForm] || 0) + 1;
+      } else if (negativeWordsIT.has(cleanedWord)) {
+        adjectivesNegative[baseForm] = (adjectivesNegative[baseForm] || 0) + 1;
+      } else {
+        adjectivesNeutral[baseForm] = (adjectivesNeutral[baseForm] || 0) + 1;
+      }
     }
   });
-  
+
   const sentimentResults = sentences.map(sentence => {
     const words = sentence.toLowerCase().split(/\s+/);
     let score = 0;
@@ -176,14 +182,24 @@ export const analyzeText = (text: string) => {
       characters: text.length,
       sentences: sentences.length,
       words: words.length,
-      adjectives: adjectivesCount,
+      adjectives: Object.values(adjectivesPositive).reduce((a, b) => a + b, 0) +
+                 Object.values(adjectivesNegative).reduce((a, b) => a + b, 0) +
+                 Object.values(adjectivesNeutral).reduce((a, b) => a + b, 0),
     },
     keywords: getNGrams(cleanWords, 1),
     bigrams: getNGrams(cleanWords, 2),
     trigrams: getNGrams(cleanWords, 3),
-    adjectives: Object.entries(adjectivesFreq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 40),
+    adjectives: {
+      positive: Object.entries(adjectivesPositive)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 40),
+      negative: Object.entries(adjectivesNegative)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 40),
+      neutral: Object.entries(adjectivesNeutral)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 40),
+    },
     properNouns: findProperNouns(text),
     sentiment: {
       overall: overallSentiment,
