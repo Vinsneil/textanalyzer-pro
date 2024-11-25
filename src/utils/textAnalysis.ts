@@ -1,8 +1,4 @@
-import natural from "natural";
-import nlp from "compromise";
-
-const tokenizer = new natural.WordTokenizer();
-const sentenceTokenizer = new natural.SentenceTokenizer();
+import nlp from 'compromise';
 
 const removeStopwords = (words: string[], lang: string) => {
   const stopwords = lang === "it" 
@@ -33,28 +29,36 @@ const detectLanguage = (text: string): "it" | "en" => {
 
 export const analyzeText = (text: string) => {
   const lang = detectLanguage(text);
-  const words = tokenizer.tokenize(text) || [];
-  const sentences = sentenceTokenizer.tokenize(text) || [];
+  const doc = nlp(text);
+  const words = text.split(/\s+/);
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const cleanWords = removeStopwords(words, lang);
   
-  // Analyze sentiment
-  const doc = nlp(text);
+  // Analyze sentiment using compromise's basic sentiment analysis
   const sentimentResults = sentences.map(sentence => {
     const sentenceDoc = nlp(sentence);
-    const sentiment = sentenceDoc.sentiment();
+    const terms = sentenceDoc.terms().json();
+    let score = 0;
+    
+    terms.forEach((term: any) => {
+      if (term.tags.includes('Positive')) score += 1;
+      if (term.tags.includes('Negative')) score -= 1;
+    });
+    
     return {
       text: sentence,
-      sentiment: sentiment > 0.1 ? "positive" : sentiment < -0.1 ? "negative" : "neutral"
+      sentiment: score > 0 ? "positive" : score < 0 ? "negative" : "neutral"
     };
   });
   
+  const totalSentences = sentimentResults.length;
   const overallSentiment = {
-    positive: sentimentResults.filter(s => s.sentiment === "positive").length / sentences.length,
-    negative: sentimentResults.filter(s => s.sentiment === "negative").length / sentences.length,
-    neutral: sentimentResults.filter(s => s.sentiment === "neutral").length / sentences.length,
+    positive: sentimentResults.filter(s => s.sentiment === "positive").length / totalSentences,
+    negative: sentimentResults.filter(s => s.sentiment === "negative").length / totalSentences,
+    neutral: sentimentResults.filter(s => s.sentiment === "neutral").length / totalSentences,
   };
 
-  // Get adjectives
+  // Get adjectives using compromise
   const adjectives = doc.adjectives().out('array')
     .reduce((acc: { [key: string]: number }, adj: string) => {
       acc[adj] = (acc[adj] || 0) + 1;
