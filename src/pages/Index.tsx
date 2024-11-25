@@ -30,7 +30,7 @@ const Index = () => {
           Analisi del Testo
         </h1>
         
-        <div className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card className="p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">
               Inserisci il testo da analizzare
@@ -47,11 +47,7 @@ const Index = () => {
           </Card>
 
           {analysis && (
-            <>
-              <SentimentAnalysis
-                overall={analysis.sentiment.overall}
-                sentences={analysis.sentiment.sentences}
-              />
+            <div className="space-y-8">
               <TextStats stats={analysis.basicStats} />
               <KeywordsAnalysis
                 keywords={analysis.keywords}
@@ -59,7 +55,11 @@ const Index = () => {
                 trigrams={analysis.trigrams}
                 adjectives={analysis.adjectives}
               />
-            </>
+              <SentimentAnalysis
+                overall={analysis.sentiment.overall}
+                sentences={analysis.sentiment.sentences}
+              />
+            </div>
           )}
         </div>
       </div>
