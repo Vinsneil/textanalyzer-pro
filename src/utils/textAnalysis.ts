@@ -92,6 +92,22 @@ export const analyzeText = (text: string) => {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const cleanWords = removeStopwords(words, lang);
   
+  // Count adjectives in the text
+  let adjectivesCount = 0;
+  const adjectivesFreq: { [key: string]: number } = {};
+  
+  words.forEach(word => {
+    const cleanedWord = cleanWord(word);
+    if (adjectiveFormsSet.has(cleanedWord)) {
+      adjectivesCount++;
+      const baseForm = Array.from(italianAdjectives).find(adj => 
+        getAdjectiveForms(adj).has(cleanedWord)
+      ) || cleanedWord;
+      
+      adjectivesFreq[baseForm] = (adjectivesFreq[baseForm] || 0) + 1;
+    }
+  });
+  
   const sentimentResults = sentences.map(sentence => {
     const words = sentence.toLowerCase().split(/\s+/);
     let score = 0;
@@ -100,7 +116,6 @@ export const analyzeText = (text: string) => {
     words.forEach(word => {
       const cleanedWord = cleanWord(word);
       
-      // Analisi delle parole di sentiment
       if (positiveWordsIT.has(cleanedWord)) {
         score += 1;
         totalWords += 1;
@@ -110,7 +125,6 @@ export const analyzeText = (text: string) => {
         totalWords += 1;
       }
       
-      // Analisi degli aggettivi
       if (adjectiveFormsSet.has(cleanedWord)) {
         const adjectiveSentiment = getAdjectiveSentiment(cleanedWord);
         if (adjectiveSentiment !== 0) {
@@ -120,7 +134,6 @@ export const analyzeText = (text: string) => {
       }
     });
     
-    // Normalizza il punteggio in base al numero di parole analizzate
     const normalizedScore = totalWords > 0 ? score / totalWords : 0;
     
     return {
@@ -136,29 +149,17 @@ export const analyzeText = (text: string) => {
     neutral: sentimentResults.filter(s => s.sentiment === "neutral").length / totalSentences,
   };
 
-  const wordList = text.toLowerCase().split(/\s+/);
-  const adjectivesCount: { [key: string]: number } = {};
-  
-  wordList.forEach(word => {
-    const cleanedWord = cleanWord(word);
-    if (adjectiveFormsSet.has(cleanedWord)) {
-      const baseForm = Array.from(italianAdjectives).find(adj => 
-        getAdjectiveForms(adj).has(cleanedWord)
-      ) || cleanedWord;
-      
-      adjectivesCount[baseForm] = (adjectivesCount[baseForm] || 0) + 1;
-    }
-  });
-
   return {
     basicStats: {
       characters: text.length,
       sentences: sentences.length,
+      words: words.length,
+      adjectives: adjectivesCount,
     },
     keywords: getNGrams(cleanWords, 1),
     bigrams: getNGrams(cleanWords, 2),
     trigrams: getNGrams(cleanWords, 3),
-    adjectives: Object.entries(adjectivesCount)
+    adjectives: Object.entries(adjectivesFreq)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 40),
     sentiment: {
