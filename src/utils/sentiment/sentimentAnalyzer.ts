@@ -1,15 +1,14 @@
 import { SENTIMENT_WEIGHTS } from './weights';
-import { positiveWordsIT, negativeWordsIT } from '../italianDictionaries/sentimentWords';
+import { positiveWords, negativeWords } from '../italianDictionaries/sentiment';
 import { cleanWord } from '../textCleaner';
 
 export const getAdjectiveSentiment = (adjective: string): number => {
-  // Clean the adjective before checking sentiment
   const cleanedAdj = cleanWord(adjective);
   
-  if (positiveWordsIT.has(cleanedAdj)) {
+  if (positiveWords.has(cleanedAdj)) {
     return SENTIMENT_WEIGHTS.POSITIVE_ADJECTIVE;
   }
-  if (negativeWordsIT.has(cleanedAdj)) {
+  if (negativeWords.has(cleanedAdj)) {
     return SENTIMENT_WEIGHTS.NEGATIVE_ADJECTIVE;
   }
   
@@ -22,14 +21,13 @@ export const analyzeSentence = (sentence: string) => {
   let totalWords = 0;
   
   words.forEach(word => {
-    // Clean each word before sentiment analysis
     const cleanedWord = cleanWord(word);
     
-    if (positiveWordsIT.has(cleanedWord)) {
+    if (positiveWords.has(cleanedWord)) {
       score += SENTIMENT_WEIGHTS.POSITIVE_WORD;
       totalWords += 1;
     }
-    if (negativeWordsIT.has(cleanedWord)) {
+    if (negativeWords.has(cleanedWord)) {
       score += SENTIMENT_WEIGHTS.NEGATIVE_WORD;
       totalWords += 1;
     }
