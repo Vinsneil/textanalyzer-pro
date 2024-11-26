@@ -31,6 +31,7 @@ const Index = () => {
         </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Prima colonna: Form e Sentiment Analysis */}
           <div className="space-y-8">
             <Card className="p-6">
               <h2 className="text-xl font-heading font-semibold mb-4">
@@ -55,6 +56,7 @@ const Index = () => {
             )}
           </div>
 
+          {/* Seconda colonna: Statistiche e Keywords Analysis */}
           {analysis && (
             <div className="space-y-8">
               <TextStats stats={analysis.basicStats} />

@@ -1,5 +1,5 @@
 import { italianAdjectives } from './italianDictionaries/adjectives';
-import { positiveWordsIT, negativeWordsIT } from './italianDictionaries/sentimentWords';
+import { positiveWords, negativeWords } from './italianDictionaries/sentiment';
 import { cleanWord, removeStopwords } from './textCleaner';
 import { getAdjectiveSentiment, analyzeSentence } from './sentiment/sentimentAnalyzer';
 import nlp from 'compromise';
@@ -21,7 +21,7 @@ const getNGrams = (words: string[], n: number): Array<[string, number]> => {
   
   return Object.entries(ngrams)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 40);
+    .slice(0, 60);
 };
 
 const findProperNouns = (text: string): Array<[string, number]> => {
@@ -41,7 +41,7 @@ const findProperNouns = (text: string): Array<[string, number]> => {
 
   return Object.entries(properNouns)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 40);
+    .slice(0, 60);
 };
 
 const getAdjectiveForms = (adjective: string): Set<string> => {
@@ -125,21 +125,21 @@ export const analyzeText = (text: string) => {
                  Object.values(adjectivesNegative).reduce((a, b) => a + b, 0) +
                  Object.values(adjectivesNeutral).reduce((a, b) => a + b, 0),
     },
-    keywords: getNGrams(cleanWords, 1),
-    bigrams: getNGrams(cleanWords, 2),
-    trigrams: getNGrams(cleanWords, 3),
+    keywords: getNGrams(cleanWords, 1).slice(0, 60),
+    bigrams: getNGrams(cleanWords, 2).slice(0, 60),
+    trigrams: getNGrams(cleanWords, 3).slice(0, 60),
     adjectives: {
       positive: Object.entries(adjectivesPositive)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 40),
+        .slice(0, 60),
       negative: Object.entries(adjectivesNegative)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 40),
+        .slice(0, 60),
       neutral: Object.entries(adjectivesNeutral)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 40),
+        .slice(0, 60),
     },
-    properNouns: findProperNouns(text),
+    properNouns: findProperNouns(text).slice(0, 60),
     sentiment: {
       overall: overallSentiment,
       sentences: sentimentResults,
