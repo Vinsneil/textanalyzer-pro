@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import TextStats from "@/components/TextStats";
 import KeywordsAnalysis from "@/components/KeywordsAnalysis";
 import SentimentAnalysis from "@/components/SentimentAnalysis";
+import Summary from "@/components/Summary";
 import { analyzeText } from "@/utils/textAnalysis";
 import { toast } from "sonner";
 
@@ -56,9 +57,13 @@ const Index = () => {
             )}
           </div>
 
-          {/* Seconda colonna: Statistiche e Keywords Analysis */}
+          {/* Seconda colonna: Summary, Statistiche e Keywords Analysis */}
           {analysis && (
             <div className="space-y-8">
+              <Summary 
+                text={text}
+                sentiment={analysis.sentiment.overall}
+              />
               <TextStats stats={analysis.basicStats} />
               <KeywordsAnalysis
                 keywords={analysis.keywords}

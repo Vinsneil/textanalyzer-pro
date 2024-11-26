@@ -1,7 +1,6 @@
 import { italianAdjectives } from './italianDictionaries/adjectives';
-import { positiveWords, negativeWords } from './italianDictionaries/sentiment';
 import { cleanWord, removeStopwords } from './textCleaner';
-import { getAdjectiveSentiment, analyzeSentence } from './sentiment/sentimentAnalyzer';
+import { analyzeSentence } from './sentiment/sentimentAnalyzer';
 import nlp from 'compromise';
 
 const detectLanguage = (text: string): "it" | "en" => {
@@ -82,9 +81,7 @@ export const analyzeText = (text: string) => {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const cleanWords = removeStopwords(words, lang);
   
-  const adjectivesPositive: { [key: string]: number } = {};
-  const adjectivesNegative: { [key: string]: number } = {};
-  const adjectivesNeutral: { [key: string]: number } = {};
+  const adjectives: { [key: string]: number } = {};
   
   words.forEach(word => {
     const cleanedWord = cleanWord(word);
@@ -93,14 +90,7 @@ export const analyzeText = (text: string) => {
         getAdjectiveForms(adj).has(cleanedWord)
       ) || cleanedWord;
       
-      const sentiment = getAdjectiveSentiment(cleanedWord);
-      if (sentiment > 0) {
-        adjectivesPositive[baseForm] = (adjectivesPositive[baseForm] || 0) + 1;
-      } else if (sentiment < 0) {
-        adjectivesNegative[baseForm] = (adjectivesNegative[baseForm] || 0) + 1;
-      } else {
-        adjectivesNeutral[baseForm] = (adjectivesNeutral[baseForm] || 0) + 1;
-      }
+      adjectives[baseForm] = (adjectives[baseForm] || 0) + 1;
     }
   });
 
@@ -121,24 +111,14 @@ export const analyzeText = (text: string) => {
       characters: text.length,
       sentences: sentences.length,
       words: words.length,
-      adjectives: Object.values(adjectivesPositive).reduce((a, b) => a + b, 0) +
-                 Object.values(adjectivesNegative).reduce((a, b) => a + b, 0) +
-                 Object.values(adjectivesNeutral).reduce((a, b) => a + b, 0),
+      adjectives: Object.values(adjectives).reduce((a, b) => a + b, 0),
     },
     keywords: getNGrams(cleanWords, 1).slice(0, 60),
     bigrams: getNGrams(cleanWords, 2).slice(0, 60),
     trigrams: getNGrams(cleanWords, 3).slice(0, 60),
-    adjectives: {
-      positive: Object.entries(adjectivesPositive)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 60),
-      negative: Object.entries(adjectivesNegative)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 60),
-      neutral: Object.entries(adjectivesNeutral)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 60),
-    },
+    adjectives: Object.entries(adjectives)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 60),
     properNouns: findProperNouns(text).slice(0, 60),
     sentiment: {
       overall: overallSentiment,

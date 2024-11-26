@@ -10,11 +10,7 @@ interface KeywordsAnalysisProps {
   keywords: Array<[string, number]>;
   bigrams: Array<[string, number]>;
   trigrams: Array<[string, number]>;
-  adjectives: {
-    positive: Array<[string, number]>;
-    negative: Array<[string, number]>;
-    neutral: Array<[string, number]>;
-  };
+  adjectives: Array<[string, number]>;
   properNouns: Array<[string, number]>;
 }
 
@@ -48,20 +44,7 @@ const KeywordsAnalysis = ({
           <WordList items={trigrams || []} />
         </TabsContent>
         <TabsContent value="adjectives">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-green-600 mb-2">Positivi</h3>
-              <WordList items={adjectives?.positive || []} />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-red-600 mb-2">Negativi</h3>
-              <WordList items={adjectives?.negative || []} />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Neutri</h3>
-              <WordList items={adjectives?.neutral || []} />
-            </div>
-          </div>
+          <WordList items={adjectives || []} />
         </TabsContent>
         <TabsContent value="properNouns">
           <WordList items={properNouns || []} />
