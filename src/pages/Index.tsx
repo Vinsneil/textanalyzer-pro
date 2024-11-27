@@ -8,6 +8,7 @@ import TextStats from "@/components/TextStats";
 import KeywordsAnalysis from "@/components/KeywordsAnalysis";
 import SentimentAnalysis from "@/components/SentimentAnalysis";
 import Summary from "@/components/Summary";
+import WordCloud from "@/components/WordCloud";
 import { analyzeText } from "@/utils/textAnalysis";
 import { toast } from "sonner";
 import { fetchTextFromUrl } from "@/utils/urlFetcher";
@@ -115,6 +116,13 @@ const Index = () => {
                 sentiment={analysis.sentiment.overall}
               />
               <TextStats stats={analysis.basicStats} />
+              <WordCloud
+                keywords={analysis.keywords}
+                bigrams={analysis.bigrams}
+                trigrams={analysis.trigrams}
+                adjectives={analysis.adjectives}
+                properNouns={analysis.properNouns}
+              />
               <KeywordsAnalysis
                 keywords={analysis.keywords}
                 bigrams={analysis.bigrams}
