@@ -23,6 +23,10 @@ const getNGrams = (words: string[], n: number): Array<[string, number]> => {
     .slice(0, 60);
 };
 
+const EXCLUDED_PROPER_NOUNS = new Set([
+  'Di', 'E', 'Il', 'Da', 'Dopo', 'Prima', 'Quando', 'Ma', 'Poichè'
+]);
+
 const findProperNouns = (text: string): Array<[string, number]> => {
   const sentences = text.split(/[.!?]+/).filter(s => s.trim());
   const properNouns: { [key: string]: number } = {};
@@ -32,7 +36,7 @@ const findProperNouns = (text: string): Array<[string, number]> => {
     words.forEach((word, index) => {
       if (index === 0 || words[index - 1].endsWith('.')) return;
       
-      if (/^[A-Z][a-zàèéìòù]*$/.test(word)) {
+      if (/^[A-Z][a-zàèéìòù]*$/.test(word) && !EXCLUDED_PROPER_NOUNS.has(word)) {
         properNouns[word] = (properNouns[word] || 0) + 1;
       }
     });

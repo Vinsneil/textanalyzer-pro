@@ -45,8 +45,8 @@ const WordCloud = ({
 
   const options = {
     rotations: 2,
-    rotationAngles: [-90, 0],
-    fontSizes: [20, 60],
+    rotationAngles: [-90, 0] as [number, number],
+    fontSizes: [20, 60] as [number, number],
     padding: 5,
   };
 
