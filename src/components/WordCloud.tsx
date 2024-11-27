@@ -36,7 +36,7 @@ const WordCloud = ({
     };
 
     return dataMap[selectedCategory as keyof typeof dataMap]
-      .slice(0, 20)
+      .slice(0, 30)
       .map(([text, value]) => ({
         text,
         value,
@@ -53,7 +53,7 @@ const WordCloud = ({
   return (
     <Card className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-heading font-semibold">Word Cloud</h2>
+        <h2 className="text-xl font-heading font-semibold">Word Cloud (top 30)</h2>
         <Select
           value={selectedCategory}
           onValueChange={setSelectedCategory}

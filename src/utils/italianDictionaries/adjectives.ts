@@ -141,4 +141,24 @@ export const italianAdjectives = new Set([
   
   // Nuovi aggettivi
   "indigesto", "sciagurato", "limitato"
+
+  // Adding superlatives
+  "bellissimo", "bruttissimo", "altissimo", "bassissimo", "grandissimo",
+  "piccolissimo", "lunghissimo", "cortissimo", "larghissimo", "strettissimo",
+  "velocissimo", "lentissimo", "fortissimo", "debolissimo", "durissimo",
+  "morbidissimo", "caldissimo", "freddissimo", "dolcissimo", "amarissimo",
+  "chiarissimo", "scurissimo", "facilissimo", "difficilissimo", "ottimo",
+  "pessimo", "massimo", "minimo", "supremo", "infimo", "eccellentissimo",
+  "importantissimo", "utilissimo", "inutilissimo", "comodissimo", "scomodissimo",
+  "intelligentissimo", "stupidissimo", "simpaticissimo", "antipaticissimo",
+  "felicissimo", "tristissimo", "ricchissimo", "poverissimo", "elegantissimo",
+  "modernissimo", "antichissimo", "giovinissimo", "vecchissimo", "purissimo",
+  "rarissimo", "comunissimo", "specialissimo", "generalissimo", "precisissimo",
+  "gravissimo", "leggerissimo", "pesantissimo", "finissimo", "grossissimo",
+  "sottilissimo", "spessissimo", "carissimo", "economicissimo", "costosissimo",
+  "preziosissimo", "validissimo", "invalidissimo", "efficientissimo", "inefficientissimo",
+  "piacevolissimo", "spiacevolissimo", "gustosissimo", "disgustosissimo",
+  "profumatissimo", "puzzolentissimo", "rumorosissimo", "silenziosissimo",
+  "luminosissimo", "oscurissimo", "coloratissimo", "sbiaditissimo", "vivacissimo",
+  "spentissimo", "attivissimo", "passivissimo", "produttivissimo", "improduttivissimo"
 ]);
