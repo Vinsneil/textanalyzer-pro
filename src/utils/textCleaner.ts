@@ -45,7 +45,10 @@ const italianStopwords = new Set([
   "avevo", "avevi", "aveva", "avevamo", "avevate", "avevano",
   "avrò", "avrai", "avrà", "avremo", "avrete", "avranno",
   "abbia", "abbiate", "abbiano",
-  "avessi", "avesse", "avessero"
+  "avessi", "avesse", "avessero",
+  
+  // Congiunzioni e altre parole comuni
+  "e", "che", "ad", "anche", "ne", "sta"
 ]);
 
 export const removeStopwords = (words: string[], lang: string) => {

@@ -1,5 +1,6 @@
 import { SENTIMENT_WEIGHTS } from './weights';
 import { positiveWords, negativeWords } from '../italianDictionaries/sentiment';
+import { negativeContextWords } from '../italianDictionaries/sentiment/negativeContextWords';
 import { cleanWord } from '../textCleaner';
 
 export const getAdjectiveSentiment = (adjective: string): number => {
@@ -19,7 +20,25 @@ export const analyzeSentence = (sentence: string) => {
   const words = sentence.toLowerCase().split(/\s+/);
   let score = 0;
   let totalWords = 0;
+  let hasNegativeContext = false;
   
+  // Check for negative context words first
+  words.forEach(word => {
+    const cleanedWord = cleanWord(word);
+    if (negativeContextWords.has(cleanedWord)) {
+      hasNegativeContext = true;
+    }
+  });
+  
+  // If negative context is found, return negative sentiment
+  if (hasNegativeContext) {
+    return {
+      score: SENTIMENT_WEIGHTS.NEGATIVE_WORD,
+      sentiment: "negative"
+    };
+  }
+  
+  // Otherwise proceed with regular sentiment analysis
   words.forEach(word => {
     const cleanedWord = cleanWord(word);
     
