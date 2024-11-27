@@ -140,7 +140,7 @@ export const italianAdjectives = new Set([
   "garantito", "rischioso", "tutelato", "minacciato", "difeso", "indifeso", "salvaguardato", "vulnerabile",
   
   // Nuovi aggettivi
-  "indigesto", "sciagurato", "limitato"
+  "indigesto", "sciagurato", "limitato",
 
   // Adding superlatives
   "bellissimo", "bruttissimo", "altissimo", "bassissimo", "grandissimo",
