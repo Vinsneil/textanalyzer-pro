@@ -25,8 +25,19 @@ const Summary = ({ text, sentiment }: SummaryProps) => {
 
   const getMainTopics = () => {
     const words = text.split(/\s+/);
+    const stopWords = new Set(['il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una',
+      'e', 'ed', 'o', 'ma', 'se', 'perché', 'che', 'chi', 'cui', 'non', 'né',
+      'per', 'tra', 'fra', 'con', 'su', 'da', 'dal', 'dello', 'della', 'dei', 'degli',
+      'delle', 'nel', 'nella', 'nei', 'negli', 'nelle', 'sul', 'sulla', 'sui', 'sugli',
+      'sulle', 'questo', 'questa', 'questi', 'queste', 'quello', 'quella', 'quelli',
+      'quelle', 'come', 'dove', 'quando', 'quanto', 'quale', 'quali', 'essere', 'avere',
+      'fare', 'dire', 'del', 'al', 'dal', 'in', 'con', 'su', 'per', 'tra', 'fra']);
+
     const mainTopics = words
-      .filter(word => word.length > 4)
+      .filter(word => {
+        const cleanWord = word.toLowerCase().replace(/[.,!?;:'"]/g, '');
+        return cleanWord.length > 4 && !stopWords.has(cleanWord);
+      })
       .reduce((acc: { [key: string]: number }, word) => {
         const cleanWord = word.toLowerCase().replace(/[.,!?;:'"]/g, '');
         if (cleanWord.length > 4) {
@@ -47,17 +58,25 @@ const Summary = ({ text, sentiment }: SummaryProps) => {
     const sentences = text.split(/[.!?]+/).filter(s => s.trim());
     const averageLength = sentences.reduce((acc, s) => acc + s.trim().length, 0) / sentences.length;
     
-    let complexity = "semplice";
-    if (averageLength > 100) complexity = "molto articolato";
-    else if (averageLength > 50) complexity = "articolato";
+    let complexity = "semplice e diretto";
+    if (averageLength > 100) complexity = "molto articolato e complesso";
+    else if (averageLength > 50) complexity = "moderatamente articolato";
     
-    return `Il testo analizza principalmente ${topics.slice(0, 3).join(", ")}${
-      topics.length > 3 ? ` e ${topics.slice(3).join(", ")}` : ""
-    }. L'analisi rivela un tono ${sentiment} e uno stile ${complexity}. ${
-      sentences.length > 1 
-        ? `Il contenuto è strutturato in ${sentences.length} frasi` 
-        : "Il contenuto è espresso in una singola frase"
-    }.`.slice(0, 300);
+    const topicsDescription = topics.length > 0
+      ? `Il testo tratta principalmente di ${topics.slice(0, -1).join(", ")}${
+          topics.length > 1 ? ` e ${topics[topics.length - 1]}` : ""
+        }`
+      : "Il testo non presenta argomenti chiaramente identificabili";
+
+    const structureDescription = sentences.length > 1
+      ? `Si sviluppa attraverso ${sentences.length} frasi`
+      : "È composto da una singola frase";
+
+    return `${topicsDescription}. ${structureDescription} con uno stile ${complexity} e un tono ${sentiment}. ${
+      averageLength > 80
+        ? "La struttura del testo è elaborata e richiede un'attenta lettura."
+        : "La struttura del testo risulta facilmente comprensibile."
+    }`.trim();
   };
 
   return (
