@@ -78,6 +78,47 @@ const getAllAdjectiveForms = (): Set<string> => {
 
 const adjectiveFormsSet = getAllAdjectiveForms();
 
+const findThemes = (text: string): Array<{ theme: string; count: number; sentences: Array<string> }> => {
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+  const themes = new Map<string, { count: number; sentences: Set<string> }>();
+  
+  const themeKeywords = {
+    'Economia': ['economia', 'finanza', 'mercato', 'denaro', 'business', 'commercio', 'prezzo'],
+    'Politica': ['politica', 'governo', 'stato', 'legge', 'parlamento', 'ministro'],
+    'Tecnologia': ['tecnologia', 'digitale', 'internet', 'software', 'computer', 'innovazione'],
+    'Ambiente': ['ambiente', 'clima', 'natura', 'sostenibilità', 'ecologia', 'inquinamento'],
+    'Società': ['società', 'cultura', 'comunità', 'sociale', 'popolazione', 'cittadini'],
+    'Salute': ['salute', 'medicina', 'benessere', 'malattia', 'cura', 'prevenzione'],
+    'Istruzione': ['istruzione', 'scuola', 'università', 'formazione', 'studenti', 'educazione'],
+    'Sport': ['sport', 'atleta', 'competizione', 'gara', 'campionato', 'gioco'],
+    'Arte': ['arte', 'cultura', 'musica', 'teatro', 'cinema', 'letteratura'],
+    'Scienza': ['scienza', 'ricerca', 'studio', 'scoperta', 'laboratorio', 'esperimento']
+  };
+
+  sentences.forEach(sentence => {
+    const lowercaseSentence = sentence.toLowerCase();
+    
+    Object.entries(themeKeywords).forEach(([theme, keywords]) => {
+      if (keywords.some(keyword => lowercaseSentence.includes(keyword))) {
+        if (!themes.has(theme)) {
+          themes.set(theme, { count: 0, sentences: new Set() });
+        }
+        const themeData = themes.get(theme)!;
+        themeData.count++;
+        themeData.sentences.add(sentence.trim());
+      }
+    });
+  });
+
+  return Array.from(themes.entries())
+    .map(([theme, data]) => ({
+      theme,
+      count: data.count,
+      sentences: Array.from(data.sentences)
+    }))
+    .sort((a, b) => b.count - a.count);
+};
+
 export const analyzeText = (text: string) => {
   const lang = detectLanguage(text);
   const doc = nlp(text);
@@ -128,5 +169,6 @@ export const analyzeText = (text: string) => {
       overall: overallSentiment,
       sentences: sentimentResults,
     },
+    themes: findThemes(text),
   };
 };
