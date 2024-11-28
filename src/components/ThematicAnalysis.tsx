@@ -23,6 +23,17 @@ interface ThematicAnalysisProps {
 }
 
 const ThematicAnalysis = ({ themes }: ThematicAnalysisProps) => {
+  if (!themes || themes.length === 0) {
+    return (
+      <Card className="p-6">
+        <h2 className="text-xl font-heading font-semibold mb-4">
+          Analisi delle tematiche
+        </h2>
+        <p className="text-muted-foreground">Nessuna tematica rilevata nel testo.</p>
+      </Card>
+    );
+  }
+
   const chartData = themes.map(({ theme, count }) => ({
     name: theme,
     value: count,
@@ -36,8 +47,15 @@ const ThematicAnalysis = ({ themes }: ThematicAnalysisProps) => {
       
       <div className="h-[300px] mb-6">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData}>
-            <XAxis dataKey="name" />
+          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <XAxis 
+              dataKey="name" 
+              angle={-45}
+              textAnchor="end"
+              height={70}
+              interval={0}
+              tick={{ fontSize: 12 }}
+            />
             <YAxis />
             <Tooltip />
             <Bar dataKey="value" fill="#8B5CF6" />
@@ -45,16 +63,21 @@ const ThematicAnalysis = ({ themes }: ThematicAnalysisProps) => {
         </ResponsiveContainer>
       </div>
 
-      <Accordion type="single" collapsible>
+      <Accordion type="single" collapsible className="w-full">
         {themes.map((theme, index) => (
-          <AccordionItem key={index} value={`theme-${index}`}>
-            <AccordionTrigger>
-              {theme.theme} ({theme.count} {theme.count === 1 ? "occorrenza" : "occorrenze"})
+          <AccordionItem key={`theme-${index}`} value={`theme-${index}`}>
+            <AccordionTrigger className="text-left">
+              <span className="flex items-center gap-2">
+                {theme.theme} 
+                <span className="text-sm text-muted-foreground">
+                  ({theme.count} {theme.count === 1 ? "occorrenza" : "occorrenze"})
+                </span>
+              </span>
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-2">
                 {theme.sentences.map((sentence, idx) => (
-                  <div key={idx} className="p-3 bg-muted rounded-lg">
+                  <div key={`sentence-${idx}`} className="p-3 bg-muted rounded-lg">
                     <p className="text-sm">{sentence}</p>
                   </div>
                 ))}

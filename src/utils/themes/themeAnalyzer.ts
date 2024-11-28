@@ -20,7 +20,8 @@ const calculateThemeConfidence = (
 
   // Check for exact matches in main keywords (highest weight)
   mainKeywords.forEach(keyword => {
-    if (cleanedSentence.includes(keyword.toLowerCase())) {
+    const cleanedKeyword = cleanText(keyword);
+    if (cleanedSentence.includes(cleanedKeyword)) {
       score += 3;
       matchedTerms.push(keyword);
     }
@@ -28,7 +29,8 @@ const calculateThemeConfidence = (
 
   // Check for related terms (medium weight)
   relatedTerms.forEach(term => {
-    if (cleanedSentence.includes(term.toLowerCase())) {
+    const cleanedTerm = cleanText(term);
+    if (cleanedSentence.includes(cleanedTerm)) {
       score += 2;
       matchedTerms.push(term);
     }
@@ -36,7 +38,8 @@ const calculateThemeConfidence = (
 
   // Check for context indicators (lowest weight but important for theme confirmation)
   contextIndicators.forEach(indicator => {
-    if (cleanedSentence.includes(indicator.toLowerCase())) {
+    const cleanedIndicator = cleanText(indicator);
+    if (cleanedSentence.includes(cleanedIndicator)) {
       score += 1;
       matchedTerms.push(indicator);
     }
@@ -60,7 +63,7 @@ const calculateThemeConfidence = (
 
   // Normalize confidence score to be between 0 and 1
   const maxPossibleScore = (mainKeywords.length * 3) + (relatedTerms.length * 2) + contextIndicators.length;
-  const confidence = score / maxPossibleScore;
+  const confidence = Math.min(score / maxPossibleScore, 1);
 
   return { confidence, matchedTerms };
 };
@@ -94,7 +97,7 @@ export const analyzeThemes = (sentences: string[]): Array<{
     // Sort themes by confidence and assign sentence to top matching themes
     sentenceThemes
       .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 3) // Limit to top 3 themes per sentence
+      .slice(0, 2) // Limit to top 2 themes per sentence to avoid over-categorization
       .forEach(({ theme }) => {
         if (!themeMatches.has(theme)) {
           themeMatches.set(theme, new Set());
@@ -103,13 +106,13 @@ export const analyzeThemes = (sentences: string[]): Array<{
       });
   });
 
-  // Convert results to the expected format
+  // Convert results to the expected format and filter out themes with no matches
   return Array.from(themeMatches.entries())
     .map(([theme, sentences]) => ({
       theme,
       count: sentences.size,
       sentences: Array.from(sentences)
     }))
-    .sort((a, b) => b.count - a.count)
-    .filter(theme => theme.count > 0);
+    .filter(theme => theme.count > 0)
+    .sort((a, b) => b.count - a.count);
 };
