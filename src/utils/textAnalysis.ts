@@ -83,23 +83,103 @@ const findThemes = (text: string): Array<{ theme: string; count: number; sentenc
   const themes = new Map<string, { count: number; sentences: Set<string> }>();
   
   const themeKeywords = {
-    'Economia': ['economia', 'finanza', 'mercato', 'denaro', 'business', 'commercio', 'prezzo'],
-    'Politica': ['politica', 'governo', 'stato', 'legge', 'parlamento', 'ministro'],
-    'Tecnologia': ['tecnologia', 'digitale', 'internet', 'software', 'computer', 'innovazione'],
-    'Ambiente': ['ambiente', 'clima', 'natura', 'sostenibilità', 'ecologia', 'inquinamento'],
-    'Società': ['società', 'cultura', 'comunità', 'sociale', 'popolazione', 'cittadini'],
-    'Salute': ['salute', 'medicina', 'benessere', 'malattia', 'cura', 'prevenzione'],
-    'Istruzione': ['istruzione', 'scuola', 'università', 'formazione', 'studenti', 'educazione'],
-    'Sport': ['sport', 'atleta', 'competizione', 'gara', 'campionato', 'gioco'],
-    'Arte': ['arte', 'cultura', 'musica', 'teatro', 'cinema', 'letteratura'],
-    'Scienza': ['scienza', 'ricerca', 'studio', 'scoperta', 'laboratorio', 'esperimento']
+    'Economia e Finanza': [
+      'economia', 'finanza', 'mercato', 'denaro', 'business', 'commercio', 'prezzo',
+      'investimento', 'borsa', 'azioni', 'banca', 'credito', 'debito', 'inflazione',
+      'tasse', 'fiscale', 'finanziario', 'monetario', 'budget', 'bilancio', 'pil',
+      'crescita economica', 'recessione', 'spread', 'rendimento'
+    ],
+    'Politica e Istituzioni': [
+      'politica', 'governo', 'stato', 'legge', 'parlamento', 'ministro', 'decreto',
+      'costituzione', 'democrazia', 'elezioni', 'partito', 'referendum', 'senato',
+      'camera', 'legislatura', 'normativa', 'regolamento', 'diritto', 'giustizia',
+      'amministrazione', 'pubblico', 'riforme', 'commissione'
+    ],
+    'Tecnologia e Innovazione': [
+      'tecnologia', 'digitale', 'internet', 'software', 'computer', 'innovazione',
+      'intelligenza artificiale', 'ai', 'robotica', 'automazione', 'cybersecurity',
+      'privacy', 'dati', 'cloud', 'algoritmo', 'startup', 'app', 'mobile', 'rete',
+      '5g', 'blockchain', 'machine learning', 'smart', 'device'
+    ],
+    'Ambiente e Sostenibilità': [
+      'ambiente', 'clima', 'natura', 'sostenibilità', 'ecologia', 'inquinamento',
+      'rinnovabile', 'green', 'riciclo', 'biodiversità', 'emissioni', 'co2',
+      'energia pulita', 'solare', 'eolico', 'rifiuti', 'impatto ambientale',
+      'cambiamento climatico', 'ecosistema', 'conservazione'
+    ],
+    'Società e Cultura': [
+      'società', 'cultura', 'comunità', 'sociale', 'popolazione', 'cittadini',
+      'tradizione', 'identità', 'diversità', 'inclusione', 'diritti', 'welfare',
+      'generazioni', 'giovani', 'anziani', 'famiglia', 'gender', 'discriminazione',
+      'integrazione', 'multiculturale', 'patrimonio'
+    ],
+    'Salute e Benessere': [
+      'salute', 'medicina', 'benessere', 'malattia', 'cura', 'prevenzione',
+      'terapia', 'diagnosi', 'vaccino', 'farmaco', 'ospedale', 'medico',
+      'paziente', 'sanitario', 'epidemia', 'pandemia', 'virus', 'patologia',
+      'clinica', 'ricerca medica', 'terapeutico'
+    ],
+    'Istruzione e Formazione': [
+      'istruzione', 'scuola', 'università', 'formazione', 'studenti', 'educazione',
+      'didattica', 'insegnamento', 'apprendimento', 'competenze', 'docente',
+      'ricerca', 'accademico', 'laurea', 'diploma', 'corso', 'lezione',
+      'pedagogia', 'e-learning', 'dad', 'formativo'
+    ],
+    'Sport e Competizione': [
+      'sport', 'atleta', 'competizione', 'gara', 'campionato', 'gioco',
+      'olimpiadi', 'torneo', 'squadra', 'allenamento', 'vittoria', 'record',
+      'medaglia', 'calcio', 'tennis', 'basket', 'performance', 'mondiale',
+      'sportivo', 'agonistico'
+    ],
+    'Arte e Spettacolo': [
+      'arte', 'cultura', 'musica', 'teatro', 'cinema', 'letteratura',
+      'spettacolo', 'mostra', 'concerto', 'film', 'libro', 'artista',
+      'opera', 'pittura', 'scultura', 'design', 'fotografia', 'danza',
+      'festival', 'performance', 'creativo'
+    ],
+    'Scienza e Ricerca': [
+      'scienza', 'ricerca', 'studio', 'scoperta', 'laboratorio', 'esperimento',
+      'teoria', 'metodo scientifico', 'ipotesi', 'analisi', 'dati', 'risultati',
+      'pubblicazione', 'peer review', 'innovazione', 'brevetto', 'tecnologia',
+      'sviluppo', 'ricercatore', 'scientifico'
+    ],
+    'Lavoro e Professioni': [
+      'lavoro', 'occupazione', 'professione', 'carriera', 'impiego', 'contratto',
+      'stipendio', 'azienda', 'impresa', 'dipendente', 'manager', 'dirigente',
+      'sindacato', 'smart working', 'telelavoro', 'competenze', 'curriculum',
+      'recruitment', 'hr', 'professionale'
+    ],
+    'Trasporti e Mobilità': [
+      'trasporto', 'mobilità', 'traffico', 'veicolo', 'auto', 'treno', 'aereo',
+      'metropolitana', 'bus', 'bicicletta', 'sharing', 'sostenibile', 'elettrico',
+      'infrastruttura', 'viabilità', 'logistica', 'trasporto pubblico',
+      'pendolare', 'spostamento'
+    ]
+  };
+
+  const findThemeInSentence = (sentence: string, keywords: string[]) => {
+    const lowercaseSentence = sentence.toLowerCase();
+    // Check for exact matches first
+    for (const keyword of keywords) {
+      if (lowercaseSentence.includes(keyword.toLowerCase())) {
+        return true;
+      }
+    }
+    
+    // Check for word variations (plurals, different endings)
+    const words = lowercaseSentence.split(/\s+/);
+    return keywords.some(keyword => {
+      const keywordBase = keyword.toLowerCase().slice(0, -2); // Remove last 2 chars for stem matching
+      return words.some(word => {
+        const wordBase = word.toLowerCase().slice(0, -2);
+        return keywordBase.length > 3 && wordBase === keywordBase;
+      });
+    });
   };
 
   sentences.forEach(sentence => {
-    const lowercaseSentence = sentence.toLowerCase();
-    
     Object.entries(themeKeywords).forEach(([theme, keywords]) => {
-      if (keywords.some(keyword => lowercaseSentence.includes(keyword))) {
+      if (findThemeInSentence(sentence, keywords)) {
         if (!themes.has(theme)) {
           themes.set(theme, { count: 0, sentences: new Set() });
         }
