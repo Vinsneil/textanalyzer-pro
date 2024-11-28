@@ -13,7 +13,7 @@ const calculateThemeConfidence = (
   relatedTerms: string[],
   contextIndicators: string[]
 ): { confidence: number; matchedTerms: string[] } => {
-  const cleanedSentence = cleanText(sentence.toLowerCase());
+  const cleanedSentence = cleanText(sentence);
   const words = cleanedSentence.split(/\s+/);
   const matchedTerms: string[] = [];
   let score = 0;

@@ -3,6 +3,10 @@ export const cleanWord = (word: string): string => {
   return word.replace(/^[.,!?;:"']+|[.,!?;:"']+$/g, '').toLowerCase().trim();
 };
 
+export const cleanText = (text: string): string => {
+  return text.replace(/[.,!?;:"']+/g, ' ').toLowerCase().trim();
+};
+
 const italianStopwords = new Set([
   // Articoli determinativi
   "il", "lo", "la", "i", "gli", "le",
