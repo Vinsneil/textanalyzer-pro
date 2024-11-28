@@ -1,6 +1,7 @@
 import { italianAdjectives } from './italianDictionaries/adjectives';
 import { cleanWord, removeStopwords } from './textCleaner';
 import { analyzeSentence } from './sentiment/sentimentAnalyzer';
+import { analyzeThemes } from './themes/themeAnalyzer';
 import nlp from 'compromise';
 
 const detectLanguage = (text: string): "it" | "en" => {
@@ -78,127 +79,6 @@ const getAllAdjectiveForms = (): Set<string> => {
 
 const adjectiveFormsSet = getAllAdjectiveForms();
 
-const findThemes = (text: string): Array<{ theme: string; count: number; sentences: Array<string> }> => {
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim());
-  const themes = new Map<string, { count: number; sentences: Set<string> }>();
-  
-  const themeKeywords = {
-    'Economia e Finanza': [
-      'economia', 'finanza', 'mercato', 'denaro', 'business', 'commercio', 'prezzo',
-      'investimento', 'borsa', 'azioni', 'banca', 'credito', 'debito', 'inflazione',
-      'tasse', 'fiscale', 'finanziario', 'monetario', 'budget', 'bilancio', 'pil',
-      'crescita economica', 'recessione', 'spread', 'rendimento'
-    ],
-    'Politica e Istituzioni': [
-      'politica', 'governo', 'stato', 'legge', 'parlamento', 'ministro', 'decreto',
-      'costituzione', 'democrazia', 'elezioni', 'partito', 'referendum', 'senato',
-      'camera', 'legislatura', 'normativa', 'regolamento', 'diritto', 'giustizia',
-      'amministrazione', 'pubblico', 'riforme', 'commissione'
-    ],
-    'Tecnologia e Innovazione': [
-      'tecnologia', 'digitale', 'internet', 'software', 'computer', 'innovazione',
-      'intelligenza artificiale', 'ai', 'robotica', 'automazione', 'cybersecurity',
-      'privacy', 'dati', 'cloud', 'algoritmo', 'startup', 'app', 'mobile', 'rete',
-      '5g', 'blockchain', 'machine learning', 'smart', 'device'
-    ],
-    'Ambiente e Sostenibilità': [
-      'ambiente', 'clima', 'natura', 'sostenibilità', 'ecologia', 'inquinamento',
-      'rinnovabile', 'green', 'riciclo', 'biodiversità', 'emissioni', 'co2',
-      'energia pulita', 'solare', 'eolico', 'rifiuti', 'impatto ambientale',
-      'cambiamento climatico', 'ecosistema', 'conservazione'
-    ],
-    'Società e Cultura': [
-      'società', 'cultura', 'comunità', 'sociale', 'popolazione', 'cittadini',
-      'tradizione', 'identità', 'diversità', 'inclusione', 'diritti', 'welfare',
-      'generazioni', 'giovani', 'anziani', 'famiglia', 'gender', 'discriminazione',
-      'integrazione', 'multiculturale', 'patrimonio'
-    ],
-    'Salute e Benessere': [
-      'salute', 'medicina', 'benessere', 'malattia', 'cura', 'prevenzione',
-      'terapia', 'diagnosi', 'vaccino', 'farmaco', 'ospedale', 'medico',
-      'paziente', 'sanitario', 'epidemia', 'pandemia', 'virus', 'patologia',
-      'clinica', 'ricerca medica', 'terapeutico'
-    ],
-    'Istruzione e Formazione': [
-      'istruzione', 'scuola', 'università', 'formazione', 'studenti', 'educazione',
-      'didattica', 'insegnamento', 'apprendimento', 'competenze', 'docente',
-      'ricerca', 'accademico', 'laurea', 'diploma', 'corso', 'lezione',
-      'pedagogia', 'e-learning', 'dad', 'formativo'
-    ],
-    'Sport e Competizione': [
-      'sport', 'atleta', 'competizione', 'gara', 'campionato', 'gioco',
-      'olimpiadi', 'torneo', 'squadra', 'allenamento', 'vittoria', 'record',
-      'medaglia', 'calcio', 'tennis', 'basket', 'performance', 'mondiale',
-      'sportivo', 'agonistico'
-    ],
-    'Arte e Spettacolo': [
-      'arte', 'cultura', 'musica', 'teatro', 'cinema', 'letteratura',
-      'spettacolo', 'mostra', 'concerto', 'film', 'libro', 'artista',
-      'opera', 'pittura', 'scultura', 'design', 'fotografia', 'danza',
-      'festival', 'performance', 'creativo'
-    ],
-    'Scienza e Ricerca': [
-      'scienza', 'ricerca', 'studio', 'scoperta', 'laboratorio', 'esperimento',
-      'teoria', 'metodo scientifico', 'ipotesi', 'analisi', 'dati', 'risultati',
-      'pubblicazione', 'peer review', 'innovazione', 'brevetto', 'tecnologia',
-      'sviluppo', 'ricercatore', 'scientifico'
-    ],
-    'Lavoro e Professioni': [
-      'lavoro', 'occupazione', 'professione', 'carriera', 'impiego', 'contratto',
-      'stipendio', 'azienda', 'impresa', 'dipendente', 'manager', 'dirigente',
-      'sindacato', 'smart working', 'telelavoro', 'competenze', 'curriculum',
-      'recruitment', 'hr', 'professionale'
-    ],
-    'Trasporti e Mobilità': [
-      'trasporto', 'mobilità', 'traffico', 'veicolo', 'auto', 'treno', 'aereo',
-      'metropolitana', 'bus', 'bicicletta', 'sharing', 'sostenibile', 'elettrico',
-      'infrastruttura', 'viabilità', 'logistica', 'trasporto pubblico',
-      'pendolare', 'spostamento'
-    ]
-  };
-
-  const findThemeInSentence = (sentence: string, keywords: string[]) => {
-    const lowercaseSentence = sentence.toLowerCase();
-    // Check for exact matches first
-    for (const keyword of keywords) {
-      if (lowercaseSentence.includes(keyword.toLowerCase())) {
-        return true;
-      }
-    }
-    
-    // Check for word variations (plurals, different endings)
-    const words = lowercaseSentence.split(/\s+/);
-    return keywords.some(keyword => {
-      const keywordBase = keyword.toLowerCase().slice(0, -2); // Remove last 2 chars for stem matching
-      return words.some(word => {
-        const wordBase = word.toLowerCase().slice(0, -2);
-        return keywordBase.length > 3 && wordBase === keywordBase;
-      });
-    });
-  };
-
-  sentences.forEach(sentence => {
-    Object.entries(themeKeywords).forEach(([theme, keywords]) => {
-      if (findThemeInSentence(sentence, keywords)) {
-        if (!themes.has(theme)) {
-          themes.set(theme, { count: 0, sentences: new Set() });
-        }
-        const themeData = themes.get(theme)!;
-        themeData.count++;
-        themeData.sentences.add(sentence.trim());
-      }
-    });
-  });
-
-  return Array.from(themes.entries())
-    .map(([theme, data]) => ({
-      theme,
-      count: data.count,
-      sentences: Array.from(data.sentences)
-    }))
-    .sort((a, b) => b.count - a.count);
-};
-
 export const analyzeText = (text: string) => {
   const lang = detectLanguage(text);
   const doc = nlp(text);
@@ -238,17 +118,17 @@ export const analyzeText = (text: string) => {
       words: words.length,
       adjectives: Object.values(adjectives).reduce((a, b) => a + b, 0),
     },
-    keywords: getNGrams(cleanWords, 1).slice(0, 60),
-    bigrams: getNGrams(cleanWords, 2).slice(0, 60),
-    trigrams: getNGrams(cleanWords, 3).slice(0, 60),
+    keywords: getNGrams(cleanWords, 1),
+    bigrams: getNGrams(cleanWords, 2),
+    trigrams: getNGrams(cleanWords, 3),
     adjectives: Object.entries(adjectives)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 60),
-    properNouns: findProperNouns(text).slice(0, 60),
+    properNouns: findProperNouns(text),
     sentiment: {
       overall: overallSentiment,
       sentences: sentimentResults,
     },
-    themes: findThemes(text),
+    themes: analyzeThemes(sentences),
   };
 };
