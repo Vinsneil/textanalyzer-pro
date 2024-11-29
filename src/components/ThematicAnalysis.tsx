@@ -45,18 +45,20 @@ const ThematicAnalysis = ({ themes }: ThematicAnalysisProps) => {
         Analisi delle tematiche
       </h2>
       
-      <div className="h-[300px] mb-6">
+      <div className="h-[400px] mb-6">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <XAxis 
-              dataKey="name" 
-              angle={-45}
-              textAnchor="end"
-              height={70}
-              interval={0}
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 5, right: 30, left: 220, bottom: 5 }}
+          >
+            <XAxis type="number" />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={200}
               tick={{ fontSize: 12 }}
             />
-            <YAxis />
             <Tooltip />
             <Bar dataKey="value" fill="#8B5CF6" />
           </BarChart>
