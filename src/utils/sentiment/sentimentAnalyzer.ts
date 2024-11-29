@@ -1,12 +1,56 @@
 import { SENTIMENT_WEIGHTS } from './weights';
 import { positiveWords, negativeWords } from '../italianDictionaries/sentiment';
 import { negativeContextWords } from '../italianDictionaries/sentiment/negativeContextWords';
+import { idioms } from '../italianDictionaries/sentiment/idioms';
+import { emojis } from '../italianDictionaries/sentiment/emojis';
 import { cleanWord } from '../textCleaner';
 
-const analyzeContextualSentiment = (words: string[]) => {
+const findIdioms = (text: string) => {
+  let score = 0;
+  
+  // Convert text to lowercase for matching
+  const lowerText = text.toLowerCase();
+  
+  // Check for positive idioms
+  idioms.positive.forEach(idiom => {
+    if (lowerText.includes(idiom)) {
+      score += SENTIMENT_WEIGHTS.IDIOM_POSITIVE;
+    }
+  });
+  
+  // Check for negative idioms
+  idioms.negative.forEach(idiom => {
+    if (lowerText.includes(idiom)) {
+      score += SENTIMENT_WEIGHTS.IDIOM_NEGATIVE;
+    }
+  });
+  
+  return score;
+};
+
+const analyzeEmojis = (text: string) => {
+  let score = 0;
+  let count = 0;
+  
+  // Analyze each character
+  for (const char of text) {
+    if (emojis.positive.has(char)) {
+      score += SENTIMENT_WEIGHTS.EMOJI_POSITIVE;
+      count++;
+    } else if (emojis.negative.has(char)) {
+      score += SENTIMENT_WEIGHTS.EMOJI_NEGATIVE;
+      count++;
+    }
+  }
+  
+  return count > 0 ? score / count : 0;
+};
+
+const analyzeContextualSentiment = (words: string[], originalText: string) => {
   let contextScore = 0;
   let contextWords = 0;
 
+  // Analyze word context
   words.forEach((word, index) => {
     const cleanedWord = cleanWord(word);
     
@@ -14,17 +58,36 @@ const analyzeContextualSentiment = (words: string[]) => {
       contextScore -= SENTIMENT_WEIGHTS.NEGATIVE_CONTEXT;
       contextWords++;
       
-      // Influenza le parole vicine
-      if (index > 0) {
-        const prevWord = cleanWord(words[index - 1]);
-        if (positiveWords.has(prevWord)) {
-          contextScore -= SENTIMENT_WEIGHTS.POSITIVE_WORD;
+      // Check surrounding words (improved context analysis)
+      const surroundingWords = [
+        index > 1 ? words[index - 2] : null,
+        index > 0 ? words[index - 1] : null,
+        index < words.length - 1 ? words[index + 1] : null,
+        index < words.length - 2 ? words[index + 2] : null
+      ].filter(Boolean).map(w => cleanWord(w));
+      
+      surroundingWords.forEach(nearbyWord => {
+        if (positiveWords.has(nearbyWord)) {
+          contextScore -= SENTIMENT_WEIGHTS.POSITIVE_WORD * 0.5; // Reduced impact due to negative context
         }
-      }
+        if (negativeWords.has(nearbyWord)) {
+          contextScore -= SENTIMENT_WEIGHTS.NEGATIVE_WORD * 1.2; // Amplified impact due to negative context
+        }
+      });
     }
   });
 
-  return contextWords > 0 ? contextScore / contextWords : 0;
+  // Add idiom analysis
+  const idiomScore = findIdioms(originalText);
+  
+  // Add emoji analysis
+  const emojiScore = analyzeEmojis(originalText);
+  
+  const totalScore = contextWords > 0 
+    ? (contextScore / contextWords) + idiomScore + emojiScore
+    : idiomScore + emojiScore;
+
+  return totalScore;
 };
 
 export const analyzeSentence = (sentence: string) => {
@@ -32,10 +95,10 @@ export const analyzeSentence = (sentence: string) => {
   let score = 0;
   let totalWords = 0;
   
-  // Analisi contestuale
-  const contextScore = analyzeContextualSentiment(words);
+  // Context analysis with original text
+  const contextScore = analyzeContextualSentiment(words, sentence);
   
-  // Analisi delle singole parole
+  // Word-by-word analysis
   words.forEach(word => {
     const cleanedWord = cleanWord(word);
     
@@ -49,12 +112,12 @@ export const analyzeSentence = (sentence: string) => {
     }
   });
   
-  // Combiniamo i punteggi
+  // Combine all scores
   const finalScore = totalWords > 0 
     ? (score / totalWords) + contextScore
     : contextScore;
   
-  // Determiniamo il sentiment finale
+  // Determine final sentiment with adjusted thresholds
   return {
     score: finalScore,
     sentiment: finalScore > SENTIMENT_WEIGHTS.SENTIMENT_THRESHOLD.POSITIVE 
