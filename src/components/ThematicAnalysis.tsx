@@ -25,7 +25,7 @@ interface ThematicAnalysisProps {
 const ThematicAnalysis = ({ themes }: ThematicAnalysisProps) => {
   if (!themes || themes.length === 0) {
     return (
-      <Card className="p-6">
+      <Card>
         <h2 className="text-xl font-heading font-semibold mb-4">
           Analisi delle tematiche
         </h2>
@@ -40,7 +40,7 @@ const ThematicAnalysis = ({ themes }: ThematicAnalysisProps) => {
   }));
 
   return (
-    <Card className="p-6">
+    <Card>
       <h2 className="text-xl font-heading font-semibold mb-4">
         Analisi delle tematiche
       </h2>
