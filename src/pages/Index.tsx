@@ -9,7 +9,6 @@ import KeywordsAnalysis from "@/components/KeywordsAnalysis";
 import SentimentAnalysis from "@/components/SentimentAnalysis";
 import Summary from "@/components/Summary";
 import WordCloud from "@/components/WordCloud";
-import ThematicAnalysis from "@/components/ThematicAnalysis";
 import { analyzeText } from "@/utils/textAnalysis";
 import { toast } from "sonner";
 import { fetchTextFromUrl } from "@/utils/urlFetcher";
@@ -108,7 +107,6 @@ const Index = () => {
                   overall={analysis.sentiment.overall}
                   sentences={analysis.sentiment.sentences}
                 />
-                <ThematicAnalysis themes={analysis.themes} />
               </>
             )}
           </div>
