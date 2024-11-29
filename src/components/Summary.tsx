@@ -11,7 +11,10 @@ interface SummaryProps {
 
 const Summary = ({ text }: SummaryProps) => {
   const generateSummary = () => {
-    const words = text.split(/\s+/);
+    // Dividiamo il testo in frasi
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+    
+    // Rimuoviamo le stopwords e le parole corte
     const stopWords = new Set(['il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una',
       'e', 'ed', 'o', 'ma', 'se', 'perché', 'che', 'chi', 'cui', 'non', 'né',
       'per', 'tra', 'fra', 'con', 'su', 'da', 'dal', 'dello', 'della', 'dei', 'degli',
@@ -19,12 +22,26 @@ const Summary = ({ text }: SummaryProps) => {
       'sulle', 'questo', 'questa', 'questi', 'queste', 'quello', 'quella', 'quelli',
       'quelle', 'come', 'dove', 'quando', 'quanto', 'quale', 'quali']);
 
-    const significantWords = words
-      .map(word => word.toLowerCase().replace(/[.,!?;:'"]/g, ''))
-      .filter(word => word.length > 3 && !stopWords.has(word))
-      .slice(0, 20);
+    // Prendiamo la prima frase come base del riassunto
+    let summary = sentences[0]?.trim() || '';
 
-    const summary = significantWords.join(' ');
+    // Se ci sono altre frasi, aggiungiamo informazioni rilevanti
+    if (sentences.length > 1) {
+      const significantWords = sentences
+        .slice(1)
+        .join(' ')
+        .split(/\s+/)
+        .map(word => word.toLowerCase().replace(/[.,!?;:'"]/g, ''))
+        .filter(word => word.length > 3 && !stopWords.has(word))
+        .slice(0, 10)
+        .join(' ');
+
+      if (significantWords) {
+        summary += ` ${significantWords}`;
+      }
+    }
+
+    // Assicuriamoci che il riassunto non superi i 300 caratteri
     return summary.length > 300 ? summary.substring(0, 297) + '...' : summary;
   };
 

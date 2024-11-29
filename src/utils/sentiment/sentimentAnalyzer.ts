@@ -3,42 +3,39 @@ import { positiveWords, negativeWords } from '../italianDictionaries/sentiment';
 import { negativeContextWords } from '../italianDictionaries/sentiment/negativeContextWords';
 import { cleanWord } from '../textCleaner';
 
-export const getAdjectiveSentiment = (adjective: string): number => {
-  const cleanedAdj = cleanWord(adjective);
-  
-  if (positiveWords.has(cleanedAdj)) {
-    return SENTIMENT_WEIGHTS.POSITIVE_ADJECTIVE;
-  }
-  if (negativeWords.has(cleanedAdj)) {
-    return SENTIMENT_WEIGHTS.NEGATIVE_ADJECTIVE;
-  }
-  
-  return 0;
+const analyzeContextualSentiment = (words: string[]) => {
+  let contextScore = 0;
+  let contextWords = 0;
+
+  words.forEach((word, index) => {
+    const cleanedWord = cleanWord(word);
+    
+    if (negativeContextWords.has(cleanedWord)) {
+      contextScore -= SENTIMENT_WEIGHTS.NEGATIVE_CONTEXT;
+      contextWords++;
+      
+      // Influenza le parole vicine
+      if (index > 0) {
+        const prevWord = cleanWord(words[index - 1]);
+        if (positiveWords.has(prevWord)) {
+          contextScore -= SENTIMENT_WEIGHTS.POSITIVE_WORD;
+        }
+      }
+    }
+  });
+
+  return contextWords > 0 ? contextScore / contextWords : 0;
 };
 
 export const analyzeSentence = (sentence: string) => {
   const words = sentence.toLowerCase().split(/\s+/);
   let score = 0;
   let totalWords = 0;
-  let hasNegativeContext = false;
   
-  // Check for negative context words first
-  words.forEach(word => {
-    const cleanedWord = cleanWord(word);
-    if (negativeContextWords.has(cleanedWord)) {
-      hasNegativeContext = true;
-    }
-  });
+  // Analisi contestuale
+  const contextScore = analyzeContextualSentiment(words);
   
-  // If negative context is found, return negative sentiment
-  if (hasNegativeContext) {
-    return {
-      score: SENTIMENT_WEIGHTS.NEGATIVE_WORD,
-      sentiment: "negative"
-    };
-  }
-  
-  // Otherwise proceed with regular sentiment analysis
+  // Analisi delle singole parole
   words.forEach(word => {
     const cleanedWord = cleanWord(word);
     
@@ -52,13 +49,17 @@ export const analyzeSentence = (sentence: string) => {
     }
   });
   
-  const normalizedScore = totalWords > 0 ? score / totalWords : 0;
+  // Combiniamo i punteggi
+  const finalScore = totalWords > 0 
+    ? (score / totalWords) + contextScore
+    : contextScore;
   
+  // Determiniamo il sentiment finale
   return {
-    score: normalizedScore,
-    sentiment: normalizedScore > SENTIMENT_WEIGHTS.SENTIMENT_THRESHOLD.POSITIVE 
+    score: finalScore,
+    sentiment: finalScore > SENTIMENT_WEIGHTS.SENTIMENT_THRESHOLD.POSITIVE 
       ? "positive" 
-      : normalizedScore < SENTIMENT_WEIGHTS.SENTIMENT_THRESHOLD.NEGATIVE 
+      : finalScore < SENTIMENT_WEIGHTS.SENTIMENT_THRESHOLD.NEGATIVE 
         ? "negative" 
         : "neutral"
   };
